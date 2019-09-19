@@ -54,6 +54,7 @@ class db_driver():
     def query(self,sql):
         try:
             self.db_cursor.execute(sql)
+            self.db.commit()
             return self.db_cursor.fetchall()
         except Exception as e:
             print("------------------------------------------------------------------------------------------------------------------------------------")

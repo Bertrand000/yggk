@@ -20,9 +20,21 @@ base_ocr = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
 MODEL_OCR = "https://aip.baidubce.com/rest/2.0/solution/v1/iocr/recognise"
 app_key = "STTHk6B5AQFNZ0Td0EZ9SG3o"
 secret_key = "USHUyIt0wkMGIcjmVv2lv72akjC4HGYK"
-token = "24.3e71cee5cbd1b1c966cb30fcfca456e4.2592000.1570178560.282335-17108856"
+'''小魏'''
+# app_key = "vDRbUXbnDMncYOl7R6vPvcPi"
+# secret_key = "mhV39dDoTd1M2WEaozkfVo0R0SQ0FvRk"
+'''波娃'''
+# app_key = "1bYlRSkiV4dFhSn7zGOLfWhE"
+# secret_key = "mtHL0Gi5Sl8cMzbiloIQQ9iaf61xH18i"
 
-def __get_token():
+token = "24.3e71cee5cbd1b1c966cb30fcfca456e4.2592000.1570178560.282335-17108856"
+'''波娃账号token'''
+token_b = "24.4be9b3c18eab0fb1783677fbb371432f.2592000.1571381154.282335-17272107"
+'''小魏账号token'''
+token_w = "24.fce7eab3a602d4813edb9b3c041fa7c6.2592000.1571386011.282335-17273240"
+
+
+def __get_token(api_key,secret_key):
     '''
     获取token
     :return:
@@ -34,7 +46,7 @@ def __get_token():
     client_id： 必须参数，应用的API Key； 4WIIzGSB8IHTsSR9lfw9fXGD
     client_secret： 必须参数，应用的Secret Key；QrfaMi1jEC010yDxKavo2m33OCKNq0Qn
     '''
-    host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=4WIIzGSB8IHTsSR9lfw9fXGD&client_secret=QrfaMi1jEC010yDxKavo2m33OCKNq0Qn'
+    host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s'%(api_key,secret_key)
     resp = requests.session().get(host,headers={'Content-Type':'application/json; charset=UTF-8'})
 
     if (resp.text):
@@ -61,20 +73,24 @@ def post_image():
     else:
         resp = requests.session().post(post_image_url,data={"image":code,"is_sync":"true","request_type":"excel"},headers={"Content-Type":"application/x-www-form-urlencoded"})
         print(resp.text)
-def post_image_tongyong(url):
+def post_image_tongyong(image,url):
     '''
     百度通用性文字识别
     :return:
     '''
-    post_image_url = url + "?access_token=" + token
+    post_image_url = url + "?access_token=" + token_b
     '''图片编码'''
-    with open("a.jpg", 'rb') as f:
-        base64_data = base64.b64encode(f.read())
-        code = base64_data.decode()
+    base64_data = base64.b64encode(image)
+    code = base64_data.decode()
     # resp = requests.session().post(post_image_url,data={"image":code},headers={"Content-Type":"application/x-www-form-urlencoded"})
-    resp = requests.session().post(post_image_url,data={"image":code},headers={"Content-Type":"application/x-www-form-urlencoded"})
+    resp = requests.session().post(post_image_url,data={"image":code},headers={"Content-Type":"application/x-www-form-urlencoded"},timeout=30)
     resptext = json.loads(resp.text)
-    print(resptext)
+    try:
+        one_word = resptext['words_result'][0]['words']
+    except Exception as e:
+        return False
+    # print(resptext)
+    return one_word
 
 def image_url_model(url):
     '''
@@ -90,5 +106,4 @@ def image_url_model(url):
     resp = requests.session().post(model_u,data={"image":code,"templateSign":"8338501f42ce8de607507a9cd0b1ca94"},headers={"Content-Type":"application/x-www-form-urlencoded"})
     resptext = json.loads(resp.text)
     print(resptext)
-'''test'''
-image_url_model(MODEL_OCR)
+# __get_token("vDRbUXbnDMncYOl7R6vPvcPi","mhV39dDoTd1M2WEaozkfVo0R0SQ0FvRk")
