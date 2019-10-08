@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import jsonpath
 import requests
 import base64
 import json
@@ -29,9 +30,9 @@ secret_key = "USHUyIt0wkMGIcjmVv2lv72akjC4HGYK"
 
 token = "24.3e71cee5cbd1b1c966cb30fcfca456e4.2592000.1570178560.282335-17108856"
 '''波娃账号token'''
-token_b = "24.4be9b3c18eab0fb1783677fbb371432f.2592000.1571381154.282335-17272107"
+# token = "24.4be9b3c18eab0fb1783677fbb371432f.2592000.1571381154.282335-17272107"
 '''小魏账号token'''
-token_w = "24.fce7eab3a602d4813edb9b3c041fa7c6.2592000.1571386011.282335-17273240"
+# token = "24.fce7eab3a602d4813edb9b3c041fa7c6.2592000.1571386011.282335-17273240"
 
 
 def __get_token(api_key,secret_key):
@@ -52,6 +53,36 @@ def __get_token(api_key,secret_key):
     if (resp.text):
         print(json.loads(resp.text)['access_token'])
 
+def post_image_local(image,i):
+    '''
+    位置识别
+    :return:
+    '''
+    post_image_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general?access_token=" + token
+    jindu_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic?access_token=" + token
+    jindu_weizhi_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/accurate?access_token=" +token
+    if i > 400:
+        post_image_url = jindu_url
+    if i > 850:
+        post_image_url = jindu_weizhi_url
+    if i > 1300:
+        print("========================================================================================================================")
+        print("                                                    免费额度不足手动更换token")
+        print("========================================================================================================================")
+        return False
+    '''图片编码'''
+    base64_data = base64.b64encode(image)
+    code = base64_data.decode()
+    try:
+        resp = requests.session().post(post_image_url, data={"image": code, "is_sync": "true"},
+                                       headers={"Content-Type": "application/x-www-form-urlencoded"})
+        resptext = json.loads(resp.text)
+        te = jsonpath.jsonpath(resptext,"words_result.*.words")
+        a = ",".join(te)
+        return a
+    except Exception as e:
+        print(e)
+        return False
 def post_image():
     '''
     提交图片给百度处理
@@ -62,7 +93,7 @@ def post_image():
 
     post_image_url = table_ocr + "?access_token=" + token
     '''图片编码'''
-    with open("a.jpg", 'rb') as f:
+    with open("./111.jpg", 'rb') as f:
         base64_data = base64.b64encode(f.read())
         code = base64_data.decode()
     if type_status=="json":
@@ -78,18 +109,16 @@ def post_image_tongyong(image,url):
     百度通用性文字识别
     :return:
     '''
-    post_image_url = url + "?access_token=" + token_b
+    post_image_url = url + "?access_token=" + token
     '''图片编码'''
     base64_data = base64.b64encode(image)
     code = base64_data.decode()
-    # resp = requests.session().post(post_image_url,data={"image":code},headers={"Content-Type":"application/x-www-form-urlencoded"})
     resp = requests.session().post(post_image_url,data={"image":code},headers={"Content-Type":"application/x-www-form-urlencoded"},timeout=30)
     resptext = json.loads(resp.text)
     try:
         one_word = resptext['words_result'][0]['words']
     except Exception as e:
         return False
-    # print(resptext)
     return one_word
 
 def image_url_model(url):
@@ -106,4 +135,3 @@ def image_url_model(url):
     resp = requests.session().post(model_u,data={"image":code,"templateSign":"8338501f42ce8de607507a9cd0b1ca94"},headers={"Content-Type":"application/x-www-form-urlencoded"})
     resptext = json.loads(resp.text)
     print(resptext)
-# __get_token("vDRbUXbnDMncYOl7R6vPvcPi","mhV39dDoTd1M2WEaozkfVo0R0SQ0FvRk")
